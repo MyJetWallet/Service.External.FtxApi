@@ -12,4 +12,8 @@
     <ProjectReference Include="..\Service.External.FtxApi.Domain.Models\Service.External.FtxApi.Domain.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models" />
+  </ItemGroup>
+
 </Project>

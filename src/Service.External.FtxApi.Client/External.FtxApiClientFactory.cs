@@ -1,6 +1,5 @@
 ﻿using JetBrains.Annotations;
 using MyJetWallet.Sdk.Grpc;
-using Service.External.FtxApi.Grpc;
 
 namespace Service.External.FtxApi.Client
 {
@@ -11,6 +10,5 @@ namespace Service.External.FtxApi.Client
         {
         }
 
-        public IHelloService GetHelloService() => CreateGrpcService<IHelloService>();
     }
 }

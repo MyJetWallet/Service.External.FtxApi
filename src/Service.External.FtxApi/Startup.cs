@@ -12,7 +12,6 @@ using MyJetWallet.Sdk.GrpcSchema;
 using MyJetWallet.Sdk.Service;
 using Prometheus;
 using ProtoBuf.Grpc.Server;
-using Service.External.FtxApi.Grpc;
 using Service.External.FtxApi.Modules;
 using Service.External.FtxApi.Services;
 using SimpleTrading.BaseMetrics;

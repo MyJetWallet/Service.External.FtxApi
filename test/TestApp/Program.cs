@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using ProtoBuf.Grpc.Client;
 using Service.External.FtxApi.Client;
-using Service.External.FtxApi.Grpc.Models;
 
 namespace TestApp
 {
@@ -14,14 +13,7 @@ namespace TestApp
 
             Console.Write("Press enter to start");
             Console.ReadLine();
-
-
-            var factory = new ExternalFtxApiClientFactory("http://localhost:5001");
-            var client = factory.GetHelloService();
-
-            var resp = await  client.SayHelloAsync(new HelloRequest(){Name = "Alex"});
-            Console.WriteLine(resp?.Message);
-
+            await Task.Delay(1000);
             Console.WriteLine("End");
             Console.ReadLine();
         }
