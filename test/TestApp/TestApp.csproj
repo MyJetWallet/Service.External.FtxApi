@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" Version="2.44.0" />
+    <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Service.External.FtxApi.Client\Service.External.FtxApi.Client.csproj" />
+    <ProjectReference Include="..\..\src\Service.External.FtxApi.Grpc\Service.External.FtxApi.Grpc.csproj" />
+  </ItemGroup>
+
+</Project>
