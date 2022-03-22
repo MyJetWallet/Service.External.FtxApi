@@ -222,6 +222,8 @@ namespace Service.External.FtxApi.Services
             try
             {
                 var fillsResult = await _restApi.GetFillsAsync(orderId);
+                
+                _logger.LogInformation("GetFills by {@orderId} Response: {@resp}", orderId, fillsResult);
 
                 if (!fillsResult.Success)
                 {
