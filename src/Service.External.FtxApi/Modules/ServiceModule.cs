@@ -30,11 +30,8 @@ namespace Service.External.FtxApi.Modules
                 .AsSelf()
                 .SingleInstance();
 
-            builder.RegisterMyNoSqlWriter<ExternalMarketSettingsNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), ExternalMarketSettingsNoSql.TableName, true);
-
-            var serviceBusClient = builder.RegisterMyServiceBusTcpClient(() => Program.Settings.ServiceBusHostPort, Program.LogFactory);
-
-            builder.RegisterMyServiceBusPublisher<BidAsk>(serviceBusClient, "jetwallet-external-prices", false);
+            builder.RegisterMyNoSqlWriter<ExternalMarketSettingsNoSql>(
+                Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), ExternalMarketSettingsNoSql.TableName);
         }
     }
 }
