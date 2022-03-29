@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using FtxApi;
 using FtxApi.Enums;
+using FtxApi.Models;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Domain.ExternalMarketApi;
 using MyJetWallet.Domain.ExternalMarketApi.Dto;
@@ -213,6 +215,52 @@ namespace Service.External.FtxApi.Services
             {
                 _logger.LogError(ex, "Cannot execute trade. Request: {requestJson}",
                     JsonConvert.SerializeObject(request));
+                throw;
+            }
+        }
+
+        public async Task<GetTradesResponse> GetTradesAsync(GetTradesRequest request)
+        {
+            FtxResult<List<Fill>> resp = null;
+            
+            try
+            {
+                resp =  await _restApi.GetFillsAsync(request.StartDate, request.EndDate);
+
+                if (!resp.Success)
+                {
+                    _logger.LogError("Cannot GetTrades, ftx request failed. Request: {@request}. Response: {@resp}", request, resp);
+
+                    return new GetTradesResponse
+                    {
+                        IsError = true,
+                        ErrorMessage = $"Ftx request failed. Ftx message: {resp.Error}"
+                    };
+                }
+
+                return new GetTradesResponse
+                {
+                    Trades = resp.Result
+                        .Where(f => f.OrderId.HasValue)
+                        .GroupBy(f => f.OrderId)
+                        .Select(group => new ExchangeTrade
+                    {
+                        Id = group.Key.ToString(),
+                        Market = group.FirstOrDefault()?.Market,
+                        Price = Convert.ToDouble(group.Average(f => f.Price)),
+                        Side = group.FirstOrDefault()?.Side == "buy" ? OrderSide.Buy : OrderSide.Sell,
+                        Source = FtxConst.Name,
+                        Timestamp = group.FirstOrDefault()?.Time ?? DateTime.MinValue,
+                        Volume = Convert.ToDouble(group.Sum(f => f.Size)),
+                        FeeSymbol = group.FirstOrDefault()?.FeeCurrency,
+                        FeeVolume = Convert.ToDouble(group.Sum(f => f.Fee)),
+                        OppositeVolume = Convert.ToDouble(group.Sum(f => f.Size * f.Price)),
+                    }).ToList()
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Cannot GetTrades. Request: {@request}. Response: {@resp}", request, resp);
                 throw;
             }
         }
