@@ -265,9 +265,109 @@ namespace Service.External.FtxApi.Services
             }
         }
 
-        public Task<ExchangeTrade> MakeLimitTradeAsync(MakeLimitTradeRequest request)
+        public async Task<ExchangeTrade> MakeLimitTradeAsync(MakeLimitTradeRequest request)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using var action = MyTelemetry.StartActivity("FTX Limit Trade");
+                request.AddToActivityAsJsonTag("request");
+
+                var refId = request.ReferenceId ?? Guid.NewGuid().ToString("N");
+
+                refId.AddToActivityAsTag("reference-id");
+
+                var orderResp = await _restApi.PlaceOrderAsync(request.Market,
+                    request.Side == OrderSide.Buy ? SideType.buy : SideType.sell, request.PriceLimit, OrderType.limit,
+                    request.Volume, refId, true);
+
+                orderResp.AddToActivityAsJsonTag("limitOrder-response");
+
+                if (!orderResp.Success && orderResp.Error != "Duplicate client order ID")
+                {
+                    throw new Exception(
+                        $"Cannot place limitOrder. Error: {orderResp.Error}. Request: {JsonConvert.SerializeObject(request)}. Reference: {refId}");
+                }
+
+                action?.AddTag("is-duplicate", orderResp.Error == "Duplicate client order ID");
+                
+                var timeLimitMs = request.TimeLimit.TotalMilliseconds;
+                var iteration = 0;
+
+                while (timeLimitMs >= 0)
+                {
+                    iteration++;
+                    
+                    orderResp = await _restApi.GetOrderStatusByClientIdAsync(refId);
+                    
+                    if (!orderResp.Success)
+                    {
+                        throw new Exception(
+                            $"Cannot get order state. Error: {orderResp.Error}. Request: {JsonConvert.SerializeObject(request)}. Reference: {refId}");
+                    }
+                    
+                    if (orderResp.Result.Status == "closed")
+                    {
+                        action?.AddTag("message", "order is executed");
+                        action?.AddTag("iterations", iteration);
+                        break;
+                    }
+
+                    await Task.Delay(500);
+                    timeLimitMs -= 500;
+                }
+
+                if (orderResp.Result.Status != "closed")
+                {
+                    await _restApi.CancelOrderByClientIdAsync(refId);
+                }
+
+                orderResp = await _restApi.GetOrderStatusByClientIdAsync(refId);
+
+                orderResp.AddToActivityAsJsonTag("order-status-response");
+
+                if (!orderResp.Success)
+                {
+                    throw new Exception(
+                        $"Cannot get finish order state. Error: {orderResp.Error}. Request: {JsonConvert.SerializeObject(request)}. Reference: {refId}");
+                }
+
+                var (feeSymbol, feeVolume) = ("", 0d);
+
+                if (orderResp.Result?.Id == null)
+                {
+                    _logger.LogWarning("Cannot get fills. OrderId in TradeData is null: {@tradeData}", orderResp);
+                }
+                else
+                {
+                    (feeSymbol, feeVolume) = await GetFeeInfoAsync(orderResp.Result.Id.Value);
+                }
+
+                var trade = new ExchangeTrade
+                {
+                    Id = (orderResp.Result.Id ?? 0).ToString(CultureInfo.InvariantCulture),
+                    Market = orderResp.Result.Market,
+                    Side = orderResp.Result.Side == "buy" ? OrderSide.Buy : OrderSide.Sell,
+                    Price = (double)(orderResp.Result.AvgFillPrice ?? 0),
+                    ReferenceId = orderResp.Result.ClientId,
+                    Source = FtxConst.Name,
+                    Volume = Convert.ToDouble(orderResp.Result.FilledSize ?? 0),
+                    Timestamp = orderResp.Result.CreatedAt,
+                    FeeSymbol = feeSymbol,
+                    FeeVolume = feeVolume
+                };
+
+                trade.AddToActivityAsJsonTag("response");
+
+                _logger.LogInformation("Ftx limit trade is done. Request: {@request}. Trade: {@trade}",
+                        request, trade);
+
+                return trade;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Cannot execute limit trade. Request: {@request}", request);
+                throw;
+            }
         }
 
         private async Task<(string FeeSymbol, double FeeVolume)> GetFeeInfoAsync(decimal orderId)
