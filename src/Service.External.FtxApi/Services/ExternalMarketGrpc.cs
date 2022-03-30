@@ -290,13 +290,10 @@ namespace Service.External.FtxApi.Services
 
                 action?.AddTag("is-duplicate", orderResp.Error == "Duplicate client order ID");
                 
-                var timeLimitMs = request.TimeLimit.TotalMilliseconds;
-                var iteration = 0;
+                var stepTimeMs = 500;
 
-                while (timeLimitMs >= 0)
+                for (var i = 0; i < request.TimeLimit.TotalMilliseconds; i += stepTimeMs)
                 {
-                    iteration++;
-                    
                     orderResp = await _restApi.GetOrderStatusByClientIdAsync(refId);
                     
                     if (!orderResp.Success)
@@ -308,12 +305,11 @@ namespace Service.External.FtxApi.Services
                     if (orderResp.Result.Status == "closed")
                     {
                         action?.AddTag("message", "order is executed");
-                        action?.AddTag("iterations", iteration);
+                        action?.AddTag("iterations", i);
                         break;
                     }
 
-                    await Task.Delay(500);
-                    timeLimitMs -= 500;
+                    await Task.Delay(stepTimeMs);
                 }
 
                 if (orderResp.Result.Status != "closed")
