@@ -265,6 +265,11 @@ namespace Service.External.FtxApi.Services
             }
         }
 
+        public Task<ExchangeTrade> MakeLimitTradeAsync(MakeLimitTradeRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
         private async Task<(string FeeSymbol, double FeeVolume)> GetFeeInfoAsync(decimal orderId)
         {
             try
