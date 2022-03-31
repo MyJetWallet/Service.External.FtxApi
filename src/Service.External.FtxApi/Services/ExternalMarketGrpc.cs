@@ -15,6 +15,7 @@ using MyJetWallet.Domain.Orders;
 using MyJetWallet.Sdk.ExternalMarketsSettings.Settings;
 using MyJetWallet.Sdk.Service;
 using Newtonsoft.Json;
+using Service.External.FtxApi.Domain.Extensions;
 using OrderType = FtxApi.Enums.OrderType;
 
 namespace Service.External.FtxApi.Services
@@ -193,7 +194,9 @@ namespace Service.External.FtxApi.Services
                     Volume = (double) size,
                     Timestamp = tradeData.Result.CreatedAt,
                     FeeSymbol = feeSymbol,
-                    FeeVolume = feeVolume
+                    FeeVolume = feeVolume,
+                    BaseAsset = tradeData.Result.Market.GetBaseAssetFromMarket(),
+                    QuoteAsset = tradeData.Result.Market.GetQuoteAssetFromMarket(),
                 };
 
                 trade.AddToActivityAsJsonTag("response");
@@ -255,6 +258,8 @@ namespace Service.External.FtxApi.Services
                         FeeSymbol = group.FirstOrDefault()?.FeeCurrency,
                         FeeVolume = Convert.ToDouble(group.Sum(f => f.Fee)),
                         OppositeVolume = Convert.ToDouble(group.Sum(f => f.Size * f.Price)),
+                        BaseAsset = group.FirstOrDefault()?.BaseCurrency,
+                        QuoteAsset = group.FirstOrDefault()?.QuoteCurrency
                     }).ToList()
                 };
             }
@@ -349,7 +354,9 @@ namespace Service.External.FtxApi.Services
                     Volume = Convert.ToDouble(orderResp.Result.FilledSize ?? 0),
                     Timestamp = orderResp.Result.CreatedAt,
                     FeeSymbol = feeSymbol,
-                    FeeVolume = feeVolume
+                    FeeVolume = feeVolume,
+                    BaseAsset = orderResp.Result.Market.GetBaseAssetFromMarket(),
+                    QuoteAsset = orderResp.Result.Market.GetQuoteAssetFromMarket(),
                 };
 
                 trade.AddToActivityAsJsonTag("response");
