@@ -283,7 +283,7 @@ namespace Service.External.FtxApi.Services
 
                 var orderResp = await _restApi.PlaceOrderAsync(request.Market,
                     request.Side == OrderSide.Buy ? SideType.buy : SideType.sell, request.PriceLimit, OrderType.limit,
-                    request.Volume, refId, true);
+                    request.Volume, refId);
 
                 orderResp.AddToActivityAsJsonTag("limitOrder-response");
 
