@@ -373,6 +373,53 @@ namespace Service.External.FtxApi.Services
             }
         }
 
+        public async Task<GetWithdrawalsHistoryResponse> GetWithdrawalsHistoryAsync(GetWithdrawalsHistoryRequest request)
+        {
+            FtxResult<List<WithdrawalHistory>> resp = null;
+            
+            try
+            {
+                resp =  await _restApi.GetWithdrawalHistoryAsync(request.From, request.To);
+
+                if (!resp.Success)
+                {
+                    _logger.LogError("Cannot GetWithdrawalsHistory, ftx request failed. Request: {@request}. Response: {@resp}", request, resp);
+
+                    return new GetWithdrawalsHistoryResponse
+                    {
+                        IsError = true,
+                        ErrorMessage = $"Ftx request failed. Ftx message: {resp.Error}"
+                    };
+                }
+
+                return new GetWithdrawalsHistoryResponse
+                {
+                    Withdrawals = resp.Result
+                        .Where(f => f.Status == "complete")
+                        .Select(withdrawal => new Withdrawal
+                        {
+                            Symbol = withdrawal.Coin,
+                            TxId = withdrawal.TxId,
+                            Id = withdrawal.Id.ToString(CultureInfo.InvariantCulture),
+                            Fee = withdrawal.Fee,
+                            Amount = withdrawal.Size,
+                            Note = withdrawal.Notes
+                        })
+                        .ToList()
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Cannot GetWithdrawalsHistory. Request: {@request}. Response: {@resp}", request, resp);
+                throw;
+            }
+        }
+
+        public Task<GetDepositsHistoryResponse> GetDepositsHistoryAsync(GetDepositsHistoryRequest historyRequest)
+        {
+            throw new NotImplementedException();
+        }
+
         private async Task<(string FeeSymbol, double FeeVolume)> GetFeeInfoAsync(decimal orderId)
         {
             try
