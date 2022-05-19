@@ -391,7 +391,7 @@ namespace Service.External.FtxApi.Services
                         ErrorMessage = $"Ftx request failed. Ftx message: {resp.Error}"
                     };
                 }
-
+                
                 return new GetWithdrawalsHistoryResponse
                 {
                     Withdrawals = resp.Result
@@ -403,7 +403,9 @@ namespace Service.External.FtxApi.Services
                             Id = withdrawal.Id.ToString(CultureInfo.InvariantCulture),
                             Fee = withdrawal.Fee,
                             Amount = withdrawal.Size,
-                            Note = withdrawal.Notes
+                            Note = withdrawal.Notes,
+                            Date = DateTime.ParseExact(withdrawal.Time, "yyyy-MM-ddTHH:mm:ss.ffffff", 
+                                System.Globalization.CultureInfo.InvariantCulture)
                         })
                         .ToList()
                 };
