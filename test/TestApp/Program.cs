@@ -18,8 +18,13 @@ namespace TestApp
 
             var factory = new ExternalFtxApiClientFactory("http://localhost:80/");
             var client = factory.CreateGrpcService<IExternalMarket>();
-            await client.GetTradesAsync(new GetTradesRequest() {StartDate = DateTime.UtcNow.AddDays(-1), EndDate = DateTime.UtcNow});
-
+            var resulTrade = await client.GetTradesAsync(new GetTradesRequest() {StartDate = DateTime.UtcNow.AddDays(-1), EndDate = DateTime.UtcNow});
+            var resultWithdrawal = await client.GetWithdrawalsHistoryAsync(new GetWithdrawalsHistoryRequest
+            {
+                ExchangeName = "FTX",
+                From = DateTime.UtcNow.AddDays(-1),
+                To = DateTime.UtcNow
+            });
             
             await Task.Delay(1000);
             Console.WriteLine("End");
