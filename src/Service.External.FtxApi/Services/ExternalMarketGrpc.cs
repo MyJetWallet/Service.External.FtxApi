@@ -404,7 +404,8 @@ namespace Service.External.FtxApi.Services
                             Fee = withdrawal.Fee,
                             Amount = withdrawal.Size,
                             Note = withdrawal.Notes,
-                            Date = DateTime.ParseExact(withdrawal.Time, "yyyy-MM-ddTHH:mm:ss.ffffff", 
+                            //'2022-05-09T10:08:34.575198+00:00
+                            Date = DateTime.ParseExact(withdrawal.Time, "yyyy-MM-ddTHH:mm:ss.ffffff+00:00", 
                                 System.Globalization.CultureInfo.InvariantCulture)
                         })
                         .ToList()
