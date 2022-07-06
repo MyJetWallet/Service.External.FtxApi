@@ -28,10 +28,11 @@ namespace Service.External.FtxApi.Modules
                 .As<IExternalMarketSettingsManager>()
                 .As<IExternalMarketSettingsAccessor>()
                 .AsSelf()
-                .SingleInstance();
+                .SingleInstance()
+                .AutoActivate();
 
-            builder.RegisterMyNoSqlWriter<ExternalMarketSettingsNoSql>(
-                Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), ExternalMarketSettingsNoSql.TableName);
+            builder.RegisterMyNoSqlWriter<ExternalMarketSettingsNoSql>(() =>
+                Program.Settings.MyNoSqlWriterUrl, ExternalMarketSettingsNoSql.TableName);
         }
     }
 }
