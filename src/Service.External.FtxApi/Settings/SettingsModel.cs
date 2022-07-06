@@ -28,5 +28,8 @@ namespace Service.External.FtxApi.Settings
         
         [YamlProperty("ExternalFtxApi.SubAccount")]
         public string SubAccount { get; set; }
+        
+        [YamlProperty("ExternalFtxApi.ApiName")]
+        public string ApiName { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace Service.External.FtxApi.Modules
 
             builder
                 .RegisterType<ExternalMarketSettingsManager>()
-                .WithParameter("name", FtxConst.Name)
+                .WithParameter("name", Program.Settings.ApiName)
                 .As<IExternalMarketSettingsManager>()
                 .As<IExternalMarketSettingsAccessor>()
                 .AsSelf()

@@ -38,7 +38,7 @@ namespace Service.External.FtxApi.Services
 
         public Task<GetNameResult> GetNameAsync(GetNameRequest request)
         {
-            return Task.FromResult(new GetNameResult() {Name = FtxConst.Name});
+            return Task.FromResult(new GetNameResult {Name = Program.Settings.ApiName});
         }
 
         public async Task<GetBalancesResponse> GetBalancesAsync(GetBalancesRequest request)
@@ -190,7 +190,7 @@ namespace Service.External.FtxApi.Services
                     Side = tradeData.Result.Side == "buy" ? OrderSide.Buy : OrderSide.Sell,
                     Price = (double) (tradeData.Result.AvgFillPrice ?? 0),
                     ReferenceId = tradeData.Result.ClientId,
-                    Source = FtxConst.Name,
+                    Source = Program.Settings.ApiName,
                     Volume = (double) size,
                     Timestamp = tradeData.Result.CreatedAt,
                     FeeSymbol = feeSymbol,
@@ -252,7 +252,7 @@ namespace Service.External.FtxApi.Services
                         Market = group.FirstOrDefault()?.Market,
                         Price = Convert.ToDouble(group.Average(f => f.Price)),
                         Side = group.FirstOrDefault()?.Side == "buy" ? OrderSide.Buy : OrderSide.Sell,
-                        Source = FtxConst.Name,
+                        Source = Program.Settings.ApiName,
                         Timestamp = group.FirstOrDefault()?.Time ?? DateTime.MinValue,
                         Volume = Convert.ToDouble(group.Sum(f => f.Size)),
                         FeeSymbol = group.FirstOrDefault()?.FeeCurrency,
@@ -350,7 +350,7 @@ namespace Service.External.FtxApi.Services
                     Side = orderResp.Result.Side == "buy" ? OrderSide.Buy : OrderSide.Sell,
                     Price = (double)(orderResp.Result.AvgFillPrice ?? 0),
                     ReferenceId = orderResp.Result.ClientId,
-                    Source = FtxConst.Name,
+                    Source = Program.Settings.ApiName,
                     Volume = Convert.ToDouble(orderResp.Result.FilledSize ?? 0),
                     Timestamp = orderResp.Result.CreatedAt,
                     FeeSymbol = feeSymbol,
